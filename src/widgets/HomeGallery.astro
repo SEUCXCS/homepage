@@ -18,28 +18,32 @@ const photos = [
 ---
 
 <section class="home-gallery" data-home-gallery aria-label="计协活动相册，共六张照片">
-  <div class="gallery-viewport" data-gallery-viewport tabindex="0" role="group" aria-label="活动照片，可滚动浏览">
+  <div
+    class="gallery-viewport"
+    data-gallery-viewport
+    tabindex="0"
+    role="group"
+    aria-label="活动照片，可上下滚动或左右滑动浏览"
+  >
     <div class="gallery-track" data-gallery-track>
-      {
-        photos.map(({ image, alt }) => (
-          <Image
-            src={image}
-            alt={alt}
-            class="gallery-photo"
-            style={{ aspectRatio: `${image.width} / ${image.height}` }}
-            format="webp"
-            quality={85}
-            width={Math.min(image.width, 2560)}
-            widths={[640, 960, 1440, 1920, 2560]
-              .filter((width) => width < Math.min(image.width, 2560))
-              .concat(Math.min(image.width, 2560))}
-            sizes={`${((image.width / image.height) * 100).toFixed(2)}dvh`}
-            loading="lazy"
-            decoding="async"
-            draggable="false"
-          />
-        ))
-      }
+      {photos.map(({ image, alt }) => (
+        <Image
+          src={image}
+          alt={alt}
+          class="gallery-photo"
+          style={{ aspectRatio: `${image.width} / ${image.height}` }}
+          format="webp"
+          quality={85}
+          width={Math.min(image.width, 2560)}
+          widths={[640, 960, 1440, 1920, 2560]
+            .filter((width) => width < Math.min(image.width, 2560))
+            .concat(Math.min(image.width, 2560))}
+          sizes={`${((image.width / image.height) * 100).toFixed(2)}dvh`}
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
+      ))}
     </div>
   </div>
 </section>
@@ -116,7 +120,74 @@ const photos = [
         onRefresh: render,
       });
 
+      let gesture:
+        | {
+            id: number;
+            startX: number;
+            startY: number;
+            lastX: number;
+            axis: 'pending' | 'horizontal' | 'vertical';
+          }
+        | undefined;
+
+      const resetGesture = () => {
+        gesture = undefined;
+      };
+
+      const onTouchStart = (event: TouchEvent) => {
+        resetGesture();
+        // Only take over a single-finger swipe while the gallery is pinned.
+        if (
+          event.touches.length !== 1 ||
+          distance <= 0 ||
+          window.scrollY < scroll.start ||
+          window.scrollY > scroll.end ||
+          (window.visualViewport?.scale ?? 1) > 1
+        )
+          return;
+        const touch = event.touches[0];
+        gesture = {
+          id: touch.identifier,
+          startX: touch.clientX,
+          startY: touch.clientY,
+          lastX: touch.clientX,
+          axis: 'pending',
+        };
+      };
+
+      const onTouchMove = (event: TouchEvent) => {
+        if (!gesture) return;
+        if (event.touches.length !== 1 || !event.cancelable) {
+          resetGesture();
+          return;
+        }
+        const touch = event.touches[0];
+        if (touch.identifier !== gesture.id) return;
+        if (gesture.axis === 'pending') {
+          const dx = Math.abs(touch.clientX - gesture.startX);
+          const dy = Math.abs(touch.clientY - gesture.startY);
+          if (Math.max(dx, dy) < 8) return;
+          gesture.axis = dx > dy ? 'horizontal' : 'vertical';
+        }
+        if (gesture.axis !== 'horizontal') return;
+
+        event.preventDefault();
+        const position = Math.max(0, Math.min(distance, window.scrollY - scroll.start - hold));
+        const nextPosition = Math.max(0, Math.min(distance, position + gesture.lastX - touch.clientX));
+        gesture.lastX = touch.clientX;
+        if (nextPosition === position) return;
+        // Share the vertical scroll position so switching gesture directions never resets the strip.
+        window.scrollTo({ top: scroll.start + hold + nextPosition, behavior: 'instant' });
+        ScrollTrigger.update();
+      };
+
+      viewport.addEventListener('touchstart', onTouchStart, { passive: true });
+      viewport.addEventListener('touchmove', onTouchMove, { passive: false });
+      viewport.addEventListener('touchend', resetGesture, { passive: true });
+      viewport.addEventListener('touchcancel', resetGesture, { passive: true });
+
       const resize = new ResizeObserver(() => {
+        resetGesture();
         cancelAnimationFrame(frame);
         frame = requestAnimationFrame(() => {
           if (measure()) ScrollTrigger.refresh();
@@ -126,6 +197,11 @@ const photos = [
       resize.observe(track);
 
       return () => {
+        resetGesture();
+        viewport.removeEventListener('touchstart', onTouchStart);
+        viewport.removeEventListener('touchmove', onTouchMove);
+        viewport.removeEventListener('touchend', resetGesture);
+        viewport.removeEventListener('touchcancel', resetGesture);
         cancelAnimationFrame(frame);
         resize.disconnect();
         scroll.kill();
@@ -188,6 +264,7 @@ const photos = [
     display: flex;
     justify-content: flex-start;
     overflow: clip;
+    touch-action: pan-y pinch-zoom;
   }
 
   .home-gallery[data-enhanced] .gallery-track {
