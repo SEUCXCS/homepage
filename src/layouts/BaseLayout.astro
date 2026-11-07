@@ -12,7 +12,7 @@ import { ClientRouter } from 'astro:transitions';
     <BaseHead {...Astro.props} />
     <ClientRouter />
   </head>
-  <body>
+  <body data-page={Astro.props.pagePath === '/horizon' ? 'horizon' : undefined}>
     <div
       class="navigation-progress"
       data-state="idle"

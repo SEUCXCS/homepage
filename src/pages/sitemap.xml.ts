@@ -4,7 +4,7 @@ import config from '../config';
 
 export const GET: APIRoute = async () => {
   const articles = await getCollection('articles', ({ data }) => !data.draft);
-  const paths = ['/', '/articles', '/join'];
+  const paths = ['/', '/articles', '/horizon', '/join'];
   paths.push(...Object.keys(config.articles.categories).map((type) => `/articles/${type}`));
   paths.push(...articles.map((item) => '/articles/' + item.id));
   const base = config.site.url.replace(/\/$/, '');

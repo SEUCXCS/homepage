@@ -11,6 +11,7 @@ const site: SiteInfo = {
 
 const nav: NavItem[] = [
   { label: 'Articles', href: '/articles' },
+  { label: 'Horizon', mobileLabel: '计往开来', href: '/horizon' },
   { label: 'Guide', mobileLabel: 'CXCS Guide', href: site.guideUrl, external: true },
   { label: 'Page', mobileLabel: 'CXCS Page', href: site.pageUrl, external: true },
 ];

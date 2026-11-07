@@ -5,9 +5,10 @@ import ThemeSwitcher from '../components/ThemeSwitcher.astro';
 import config from '../config';
 const navItems = config.nav.filter((item) => !item.external);
 const externalNav = config.nav.filter((item) => item.external);
+const isHorizon = Astro.url.pathname.replace(/\/$/, '') === '/horizon';
 ---
 
-<header class="site-header" data-header>
+<header class="site-header" data-header data-over-hero={isHorizon ? '' : undefined}>
   <a class="brand" href="/" aria-label="CXCS 首页">
     <img
       class="brand-emblem"
@@ -100,6 +101,8 @@ const externalNav = config.nav.filter((item) => item.external);
 </div>
 
 <script>
+  import { onPageLoad } from '../assets/scripts/page-load';
+
   let cleanupHeader: (() => void) | null = null;
 
   const initHeader = () => {
@@ -133,9 +136,17 @@ const externalNav = config.nav.filter((item) => item.external);
     const onCloseClick = () => closeMenu();
     const onLinkClick = () => closeMenu(false);
     const galleryViewport = document.querySelector<HTMLElement>('[data-gallery-viewport]');
+    const horizonHero = document.querySelector<HTMLElement>('[data-horizon-hero]');
+    if (horizonHero) document.body.dataset.page = 'horizon';
+    else delete document.body.dataset.page;
     const syncHeader = () => {
       if (!header) return;
       header.toggleAttribute('data-scrolled', window.scrollY > 30);
+      // 沿用现有滚动监听，按首屏边界切换反白，保留相册自己的覆盖状态。
+      header.toggleAttribute(
+        'data-over-hero',
+        !!horizonHero && horizonHero.getBoundingClientRect().bottom > header.getBoundingClientRect().bottom,
+      );
       const bounds = galleryViewport?.getBoundingClientRect();
       header.toggleAttribute(
         'data-over-gallery',
@@ -160,11 +171,16 @@ const externalNav = config.nav.filter((item) => item.external);
       document.removeEventListener('keydown', onKeydown);
       window.removeEventListener('scroll', syncHeader);
       window.removeEventListener('resize', syncHeader);
+      header?.removeAttribute('data-over-hero');
+      delete document.body.dataset.page;
     };
   };
 
-  document.addEventListener('astro:page-load', initHeader);
-  initHeader();
+  document.addEventListener('astro:before-swap', () => {
+    cleanupHeader?.();
+    cleanupHeader = null;
+  });
+  onPageLoad(initHeader);
 </script>
 
 <style>
@@ -172,6 +188,9 @@ const externalNav = config.nav.filter((item) => item.external);
     overflow: hidden;
   }
   .site-header {
+    --header-fg: var(--text);
+    --header-muted: var(--muted);
+    color: var(--header-fg);
     position: fixed;
     z-index: 50;
     top: 0;
@@ -221,12 +240,29 @@ const externalNav = config.nav.filter((item) => item.external);
   .site-header[data-over-gallery]::before {
     opacity: 1;
   }
+  /* body 标识由布局预置、生命周期脚本更新，直接加载与客户端切页都能反白。 */
+  :global(body[data-page='horizon']) .site-header[data-over-hero] {
+    --header-fg: #fff;
+    --header-muted: rgba(255, 255, 255, 0.82);
+    border-color: transparent;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  /* 图标按钮属于子组件，仅在覆盖深色首屏时覆盖其底色与边框。 */
+  .site-header[data-over-hero] :global(.icon-button) {
+    color: var(--header-fg);
+    border-color: color-mix(in srgb, var(--header-fg) 30%, transparent);
+    background: transparent;
+  }
   /* Isolate the Safari fallback so CSS optimization preserves the standard declarations. */
   @supports (-webkit-backdrop-filter: blur(16px)) {
     .site-header[data-scrolled] {
       -webkit-backdrop-filter: blur(16px);
     }
     .site-header[data-over-gallery] {
+      -webkit-backdrop-filter: none;
+    }
+    :global(body[data-page='horizon']) .site-header[data-over-hero] {
       -webkit-backdrop-filter: none;
     }
   }
@@ -252,7 +288,7 @@ const externalNav = config.nav.filter((item) => item.external);
     display: inline-block;
     width: 130px;
     height: 28px;
-    background-color: var(--text);
+    background-color: var(--header-fg, var(--text));
     -webkit-mask: url('/assets/brand/association-wordmark.svg') left center / contain no-repeat;
     mask: url('/assets/brand/association-wordmark.svg') left center / contain no-repeat;
     transition: background-color 0.2s ease;
@@ -274,13 +310,13 @@ const externalNav = config.nav.filter((item) => item.external);
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: var(--muted);
+    color: var(--header-muted);
     font-size: 13px;
     transition: color 0.2s ease;
   }
   .desktop-nav a:hover,
   .external-nav:hover {
-    color: var(--text);
+    color: var(--header-fg);
   }
   .header-actions {
     display: flex;
