@@ -1,0 +1,253 @@
+---
+import type { HorizonIssue } from '../types/horizon';
+
+interface Props {
+  issue?: HorizonIssue;
+}
+
+const { issue } = Astro.props;
+const titleLabel = ['计往开来 · CXCS Horizon', issue?.period, issue?.badge].filter(Boolean).join(' ');
+---
+
+<section class="horizon-hero" data-horizon-hero aria-labelledby="horizon-title">
+  {issue && (
+    <img
+      class="hero-bg"
+      src={issue.hero.src}
+      srcset={issue.hero.srcset}
+      sizes="100vw"
+      width="2560"
+      height="1440"
+      fetchpriority="high"
+      decoding="async"
+      alt=""
+    />
+  )}
+  <div class="hero-shade" aria-hidden="true"></div>
+  <div class="wrap hero-content">
+    <div class="hero-lockup">
+      <h1 id="horizon-title" aria-label={titleLabel}>
+        <span class="title-cjk">计往开来</span>
+        <span class="title-en" lang="en">
+          CXCS Horizon
+        </span>
+      </h1>
+      {issue && (
+        <p class="hero-period">
+          <span>{issue.period}</span>
+          {issue.badge && <span class="hero-badge">{issue.badge}</span>}
+        </p>
+      )}
+      <p class="hero-copy">在代码与想象之间，记录我们正在抵达的地平线。</p>
+      {issue && (
+        <div class="hero-actions">
+          <a class="hero-button hero-read" href={issue.pdf.href} target="_blank" rel="noopener noreferrer">
+            阅读本期 <span aria-hidden="true">↗</span>
+          </a>
+          <a class="hero-button hero-download" href={issue.pdf.href} download>
+            下载 PDF · {issue.pdf.sizeLabel}
+          </a>
+        </div>
+      )}
+    </div>
+  </div>
+  <span class="hero-scroll" aria-hidden="true">
+    SCROLL
+  </span>
+</section>
+
+<script>
+  import { onPageLoad } from '../assets/scripts/page-load';
+  import { reveal } from '../assets/scripts/reveal';
+
+  const revealedHeroes = new WeakSet<Element>();
+
+  onPageLoad(() => {
+    const hero = document.querySelector('[data-horizon-hero]');
+    // 首次完整加载会触发两次初始化；同一节点只入场一次，避免捕获动画中的透明度。
+    if (!hero || revealedHeroes.has(hero)) return;
+    revealedHeroes.add(hero);
+    reveal(hero.querySelectorAll('h1, .hero-copy'), {
+      y: 20,
+      duration: 0.65,
+      stagger: 0.08,
+    });
+  });
+</script>
+
+<style>
+  .horizon-hero {
+    --hero-ink: #061426;
+    --hero-white: #fff;
+    --hero-button-bg: #fafafa;
+    --hero-button-ink: #0b1f3a;
+    --hero-dim: rgba(6, 16, 30, 0.38);
+    --hero-top: rgba(4, 14, 28, 0.85);
+    --hero-top-mid: rgba(4, 14, 28, 0.58);
+    --hero-bottom: rgba(4, 14, 28, 0.6);
+    --hero-clear: rgba(4, 14, 28, 0);
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+    overflow: clip;
+    background: var(--hero-ink);
+    color: var(--hero-white);
+  }
+  .hero-bg,
+  .hero-shade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .hero-bg {
+    z-index: -2;
+    object-fit: cover;
+    object-position: 50% 55%;
+  }
+  .hero-shade {
+    z-index: -1;
+    background:
+      linear-gradient(180deg, var(--hero-top) 0%, var(--hero-top-mid) 16%, var(--hero-clear) 46%),
+      linear-gradient(0deg, var(--hero-bottom) 0%, var(--hero-clear) 30%), var(--hero-dim);
+  }
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 96px clamp(20px, 4.5vw, 48px);
+    text-align: center;
+  }
+  .hero-lockup {
+    width: 100%;
+  }
+  h1 {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.3em;
+    min-height: 1.1em;
+    margin: 0;
+    font-size: clamp(52px, 7.4vw, 128px);
+    line-height: 1;
+    color: var(--hero-white);
+  }
+  .title-cjk {
+    font-family: var(--font-horizon-cjk);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .title-en {
+    padding-top: 0.04em;
+    font-family: var(--font-horizon-en);
+    font-size: 0.44em;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    transform: translateY(-0.06em);
+  }
+  .hero-period {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0.32em 0 0;
+    color: color-mix(in srgb, var(--hero-white) 82%, transparent);
+    font-size: 15px;
+  }
+  .hero-badge {
+    padding: 3px 10px;
+    border-radius: 2px;
+    background: var(--hero-button-bg);
+    color: var(--hero-button-ink);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+  }
+  .hero-copy {
+    margin: 28px 0 0;
+    color: color-mix(in srgb, var(--hero-white) 68%, transparent);
+    font-size: 15px;
+    line-height: 1.8;
+    text-wrap: balance;
+  }
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .hero-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 172px;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    transition:
+      transform 0.2s ease,
+      background 0.2s ease;
+  }
+  .hero-read {
+    background: var(--hero-button-bg);
+    color: var(--hero-button-ink);
+  }
+  .hero-download {
+    border-color: color-mix(in srgb, var(--hero-white) 65%, transparent);
+    color: var(--hero-white);
+  }
+  .hero-button:hover {
+    transform: translateY(-2px);
+  }
+  .hero-download:hover {
+    background: color-mix(in srgb, var(--hero-white) 12%, transparent);
+  }
+  .hero-button:focus-visible {
+    outline-color: var(--hero-white);
+    outline-offset: 5px;
+  }
+  .hero-scroll {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    color: color-mix(in srgb, var(--hero-white) 45%, transparent);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    transform: translateX(-50%);
+  }
+  @media (max-width: 520px) {
+    h1 {
+      /* 窄屏缩小锁排，仍保持中英文同排，避免裁切标题。 */
+      font-size: clamp(32px, 10vw, 52px);
+      gap: 0.25em;
+    }
+    .hero-copy {
+      max-width: 320px;
+      margin-inline: auto;
+    }
+    .hero-actions {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero-button {
+      width: min(100%, 320px);
+    }
+  }
+  /* iOS 地址栏展开时使用稳定的小视口高度，避免内容被浏览器工具栏遮住。 */
+  @supports (height: 100svh) {
+    .horizon-hero,
+    .hero-content {
+      min-height: 100svh;
+    }
+  }
+</style>

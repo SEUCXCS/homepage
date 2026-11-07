@@ -1,0 +1,196 @@
+---
+import { ArrowRight } from '@lucide/astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HorizonHero from '../widgets/HorizonHero.astro';
+import { issues } from '../horizon';
+
+const visible = issues
+  .filter((issue) => !issue.draft)
+  .sort((a, b) => b.publishedAt.valueOf() - a.publishedAt.valueOf());
+const latest = visible[0];
+---
+
+<BaseLayout pagePath="/horizon">
+  <HorizonHero issue={latest} />
+  <section class="section horizon-archive" aria-labelledby="horizon-archive-title">
+    <div class="wrap">
+      <div class="section-line">HORIZON / ARCHIVE</div>
+      <h2 id="horizon-archive-title">全部期刊。</h2>
+      <p class="archive-description">每期一个主题，把想留下的东西印成册子。</p>
+      {visible.length > 0 ? (
+        <>
+          <div class:list={['issue-grid', { 'is-single': visible.length === 1 }]}>
+            {visible.map((issue) => (
+              <a class="issue-card" href={issue.pdf.href} target="_blank" rel="noopener noreferrer">
+                <div class="issue-cover">
+                  <img
+                    src={issue.cover.src}
+                    alt={issue.cover.alt}
+                    width="720"
+                    height="960"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="issue-body">
+                  <div class="issue-meta">
+                    <span class="issue-period">{issue.period}</span>
+                    {issue.badge && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span>{issue.badge}</span>
+                      </>
+                    )}
+                  </div>
+                  <h3>{issue.title}</h3>
+                  <p>{issue.summary}</p>
+                  <span class="issue-more">
+                    阅读本期 <ArrowRight size={13} aria-hidden="true" />
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+          <p class="archive-note">更多期刊正在筹备中。</p>
+        </>
+      ) : (
+        <p class="archive-empty">第一期正在制作中。</p>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .horizon-archive {
+    padding: 72px 0 96px;
+  }
+  h2 {
+    margin: 0 0 16px;
+    font-size: clamp(30px, 3.4vw, 42px);
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+  }
+  .archive-description {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .issue-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 36px;
+  }
+  .issue-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .issue-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--blue);
+    box-shadow: var(--shadow);
+  }
+  .issue-card:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 4px;
+  }
+  .issue-cover {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-strong);
+  }
+  .issue-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .issue-card:hover .issue-cover img {
+    transform: scale(1.04);
+  }
+  .issue-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 22px 24px 24px;
+  }
+  .issue-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .issue-period {
+    color: var(--blue);
+    font-weight: 700;
+  }
+  h3 {
+    margin: 0 0 10px;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 650;
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+  .issue-card:hover h3 {
+    color: var(--blue);
+  }
+  .issue-body p {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .issue-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 600;
+    transition: gap 0.15s ease;
+  }
+  .issue-card:hover .issue-more {
+    gap: 10px;
+  }
+  .archive-note,
+  .archive-empty {
+    color: var(--muted);
+  }
+  .archive-note {
+    margin: 16px 0 0;
+    font-size: 12px;
+  }
+  .archive-empty {
+    margin: 36px 0 0;
+  }
+  @media (max-width: 980px) {
+    .issue-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .issue-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .issue-grid.is-single {
+    grid-template-columns: minmax(0, 400px);
+  }
+</style>
