@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import config from '../src/config';
+import { pageMetadata } from '../src/page-metadata';
 
 const projectRoot = process.cwd();
 
@@ -70,6 +71,6 @@ describe('page sharing metadata', () => {
       }
     }
 
-    expect(pageImages.size).toBe(4 + Object.keys(config.articles.categories).length);
+    expect(pageImages.size).toBe(Object.keys(pageMetadata).length);
   });
 });
