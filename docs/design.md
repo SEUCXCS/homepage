@@ -24,6 +24,7 @@ CXCS Website 是东南大学成贤学院计算机协会的官方门户，服务�
 | `/articles`                                            | `articles/index.astro`                       | 推荐文章与全部公开文章    |
 | `/articles/<type>`                                     | `articles/[type]/index.astro`                | 配置驱动的分类列表        |
 | `/articles/<type>/<article-name>`                      | `articles/[type]/[slug].astro`               | 文章详情                  |
+| `/horizon`                                             | `horizon.astro`                              | 独立期刊首屏与杂志网格    |
 | `/join`                                                | `join.astro`                                 | 招新状态、群入口与 FAQ    |
 | `/404`                                                 | `404.astro`                                  | 错误页，构建为 `404.html` |
 | `/rss.xml`                                             | `rss.xml.ts`                                 | 公开文章订阅              |
@@ -64,7 +65,7 @@ Latest 的数据规则与文章总列表一致：过滤草稿，按 `publishedAt
 
 [BaseLayout](../src/layouts/BaseLayout.astro) 提供完整 HTML、`BaseHead`、`ClientRouter`、导航进度条、跳转到主要内容的链接、顶栏、`main` 和页脚。所有页面使用此布局，文章详情的结构和排版直接维护在对应路由文件中。
 
-桌面顶栏包括社徽与字标、Articles、Guide、Page、主题菜单和 Join Us。导航文案来自 `config.nav`；Join Us 入口由顶栏单独渲染。顶栏固定在页面顶部，初始高 72px，滚动超过 30px 后收缩为 64px，并出现半透明背景、模糊和分隔线。
+桌面顶栏包括社徽与字标、Articles、Horizon、Guide、Page、主题菜单和 Join Us。Horizon 的移动端标签为「计往开来」，页脚 Explore 由同一份导航配置派生。顶栏固定在页面顶部，初始高 72px，滚动超过 30px 后收缩为 64px，并出现半透明背景、模糊和分隔线。覆盖 Horizon 首屏时优先保持透明与反白，离开首屏后恢复主题玻璃态；首页相册的 `data-over-gallery` 行为独立保留。
 
 1000px 及以下使用移动菜单，打开后显示整屏 Overlay、锁定背景滚动并聚焦关闭按钮；支持 Escape、点击链接关闭和关闭后返回触发按钮。关闭状态通过 `inert` 与 `aria-hidden` 隐藏交互内容。当前没有焦点循环锁定。
 
@@ -83,6 +84,16 @@ Latest 的数据规则与文章总列表一致：过滤草稿，按 `publishedAt
 导航进度条是固定在窗口顶部的 3px 蓝线，跨页面保留，根据 Astro 导航准备、完成和中止事件更新。它提供导航反馈，不表示实际下载字节比例。文章详情另外有按整页滚动比例计算的阅读进度条。
 
 ## 4. 内页内容设计
+
+### 计往开来 / Horizon
+
+`/horizon` 是与文章体系独立的杂志栏目，由 `src/horizon.ts` 与 `src/types/horizon.ts` 定义期刊，`HorizonHero.astro` 展示最新公开期刊。按发布日期倒序过滤草稿，不复用文章集合、不创建详情路由、不进入 RSS；空数据仍输出页面和制作中提示。
+
+首屏使用 100vh（支持时以 100svh 兼容 iOS 地址栏），封面下半部 16:9 裁切作为装饰图，叠加集中定义的深蓝遮罩。居中的中文宋体主标题与 0.44 倍英文衬线副标同排、顶部对齐，期号、标签、说明与阅读/下载按钮共同垂直居中。手机端缩小标题锁排并纵向排列按钮。字体为自托管 OFL 子集，标题行预留最小高度；首屏图片提供 960/1600/2560 三档并高优先级加载。
+
+`body[data-page='horizon']` 由布局预置并在 `onPageLoad` 中同步、离页时清理。顶栏沿用现有滚动/尺寸监听，比较首屏底边与顶栏底边设置 `data-over-hero`，由 `--header-fg`、`--header-muted` 驱动反白；深色区域内滚动不出现浅色玻璃条。所有新增监听均在重新初始化和 `astro:before-swap` 清理。
+
+期刊网格沿用文章卡片的 Surface、细边框、小圆角和 Hover 语言，封面保持 3:4，桌面三列、980px 以下两列、640px 以下一列。只有一期时使用左对齐、最大 400px 的单卡，不生成占位数据。整卡在新标签打开 PDF，独立次按钮下载原件，焦点反馈明确；颜色随现有主题 Token 切换，封面不加滤镜。素材由 `scripts/horizon-assets.mts` 从首页渲染图生成，PDF 原件存放于 `public/magazines/`。
 
 ### 文章列表与分类
 
@@ -192,7 +203,13 @@ src/content/articles/<source-category>/<article-name>/index.md 或 index.mdx
 
 ## 7. 工程与交互维护
 
-页面负责路由、数据读取和区块组合；Layouts 提供公共框架；Widgets 提供组合模块；Components 提供可复用控件。当前首页各区块主要就地维护，Widgets 仅有生态堆叠卡片，不要求每个区块单独建目录或布局。
+页面负责路由、数据读取和区块组合；Layouts 提供公共框架；Widgets 提供组合模块；Components 提供可复用控件。当前首页各区块主要就地维护，Widgets 包含生态堆叠卡片、首页相册和内页首屏，不要求每个区块单独建目录或布局。
+
+| 路径 | 栏目职责 |
+| --- | --- |
+| `src/pages/horizon.astro`、`src/widgets/HorizonHero.astro` | 独立期刊页面与首屏展示 |
+| `src/horizon.ts`、`src/types/horizon.ts` | 期刊数据与可扩展类型 |
+| `scripts/horizon-assets.mts`、`public/assets/horizon/`、`public/magazines/` | 图片生成、网页素材与完整 PDF |
 
 页面、layout、widget 和 component 的专属样式、脚本、动画及媒体查询都放在所属 `.astro` 文件中。`src/assets/styles/` 只维护 Token、字体、基础规则和跨页面工具类，`src/assets/scripts/` 提供 `onPageLoad()` 与 `reveal()` 等共享能力。TypeScript 开启 Astro strict 配置，并支持 `@/*` 指向 `src/*`。
 
