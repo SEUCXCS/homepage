@@ -2,7 +2,7 @@
 
 东南大学成贤学院计算机协会官方网站，主站为 [cxcs.dev](https://cxcs.dev)。
 
-项目使用 Astro 静态生成页面，以原生 Astro 组件、TypeScript 和 GSAP 实现交互，通过 Markdown / MDX 维护文章。当前包含首页、文章列表与分类、文章详情、招新页和 404，以及 RSS、sitemap 和自动文章封面。站内导航使用 Astro `ClientRouter`，每个页面仍有独立的静态 HTML 输出。
+项目使用 Astro 静态生成页面，以原生 Astro 组件、TypeScript 和 GSAP 实现交互，通过 Markdown / MDX 维护文章。当前包含首页、文章列表与分类、文章详情、独立杂志「计往开来 / Horizon」、招新页和 404，以及 RSS、sitemap 和自动文章封面。站内导航使用 Astro `ClientRouter`，每个页面仍有独立的静态 HTML 输出。
 
 ## 本地开发
 
@@ -44,12 +44,23 @@ bun run preview
 | `/articles`                                            | 推荐文章和全部公开文章                                                   |
 | `/articles/<type>`                                     | 按配置生成的分类页，当前为 `news`、`blog`                                |
 | `/articles/<type>/<article-name>`                      | 文章详情                                                                 |
+| `/horizon`                                             | 计往开来：满屏封面首屏与独立期刊网格                                     |
 | `/join`                                                | 招新状态、QQ 群入口与常见问题                                            |
 | `/404`                                                 | 404 页面，构建输出为 `404.html`                                          |
 | `/rss.xml`、`/sitemap.xml`、`/robots.txt`              | 订阅与搜索引擎发现入口                                                   |
 | `/generated/article-covers/<type>/<article-name>.webp` | 未指定封面的公开文章的自动标题封面                                       |
 
 ## 内容维护
+
+### 维护计往开来期刊
+
+`/horizon` 使用 [src/horizon.ts](./src/horizon.ts) 的独立期刊数据，不接入文章集合或 RSS。添加新一期时，准备 PDF、首屏裁切图与完整封面，并在 `issues` 中添加记录；页面按发布日期倒序排列，最新一期用于首屏，`draft: true` 的期刊不显示。没有公开期刊时显示「第一期正在制作中。」。
+
+PDF 不再由站点托管：把期刊上传到网盘后，将下载链接填入 `pdf.href`，`pdf.sizeLabel` 按远端文件大小填写（当前为 50 MB）。首屏的阅读/下载入口、期刊卡整卡都直接指向该外链，构建产物不包含 PDF，避免占用站点流量。
+
+封面素材仍从 PDF 首页生成：用 `sips -s format png --resampleWidth 3200 "源文件.pdf" --out /tmp/horizon-page1.png` 渲染首页，再运行 `bun scripts/horizon-assets.mts /tmp/horizon-page1.png 2026-01` 生成三档响应式 WebP 和 3:4 卡片封面。脚本默认在 3200×4313 首页上裁取 `left=0, top=2400, width=3200, height=1800`；换封面后需核对裁切坐标，避免首屏残留原生标题。
+
+标题字体为自托管的 Noto Serif SC 900（仅「计往开来」四字）与 Instrument Serif 400（仅「CXCS Horizon」）子集，来源为 Google Fonts，OFL 许可证随字体保存在 `public/assets/fonts/`。
 
 ### 新增文章
 
@@ -179,19 +190,21 @@ $$
 
 ## 目录与工程约定
 
-| 路径                                             | 职责                                               |
-| ------------------------------------------------ | -------------------------------------------------- |
-| `src/pages/`                                     | 页面、文章动态路由与静态生成端点                   |
-| `src/layouts/`                                   | `BaseLayout`、`BaseHead`、顶栏和页脚               |
-| `src/components/`                                | 按钮、卡片、页面标题、文章分类导航、主题切换等控件 |
-| `src/widgets/`                                   | `StackScroll`、`StackScrollCard` 生态堆叠卡片      |
-| `src/assets/styles/`                             | 设计变量、字体、全局基础样式和共享工具类           |
-| `src/assets/scripts/`                            | 页面加载初始化和共享 Reveal 动画                   |
-| `src/content.config.ts`、`src/content/articles/` | 内容加载器、schema 与文章源文件                    |
-| `src/articles.ts`、`src/status.ts`               | 分类与封面辅助函数、时间状态计算                   |
-| `public/assets/`                                 | 社徽、字标、角色、生态截图和自托管 Geist 字体      |
-| `tests/`                                         | 内容构建、封面、页面结构、初始化生命周期和状态测试 |
-| `docs/design.md`                                 | 当前设计与实现说明                                 |
+| 路径                                                                      | 职责                                               |
+| ------------------------------------------------------------------------- | -------------------------------------------------- |
+| `src/pages/`                                                              | 页面、文章动态路由与静态生成端点                   |
+| `src/layouts/`                                                            | `BaseLayout`、`BaseHead`、顶栏和页脚               |
+| `src/components/`                                                         | 按钮、卡片、页面标题、文章分类导航、主题切换等控件 |
+| `src/widgets/`                                                            | `StackScroll`、`StackScrollCard` 生态堆叠卡片      |
+| `src/assets/styles/`                                                      | 设计变量、字体、全局基础样式和共享工具类           |
+| `src/assets/scripts/`                                                     | 页面加载初始化和共享 Reveal 动画                   |
+| `src/content.config.ts`、`src/content/articles/`                          | 内容加载器、schema 与文章源文件                    |
+| `src/articles.ts`、`src/status.ts`                                        | 分类与封面辅助函数、时间状态计算                   |
+| `src/horizon.ts`、`src/types/horizon.ts`、`src/widgets/HorizonHero.astro` | 独立期刊数据、类型与满屏首屏                       |
+| `scripts/horizon-assets.mts`、`public/assets/horizon/`                    | 可复用期刊图片裁切脚本与网页素材                   |
+| `public/assets/`                                                          | 社徽、字标、角色、生态截图和自托管 Geist 字体      |
+| `tests/`                                                                  | 内容构建、封面、页面结构、初始化生命周期和状态测试 |
+| `docs/design.md`                                                          | 当前设计与实现说明                                 |
 
 样式和浏览器脚本按所属结构就地维护：页面专属代码放在页面的 `<style>`、`<script>` 中，component、widget 和 layout 的专属代码放在各自 `.astro` 文件中，响应式规则和动画也随所属文件维护。全局脚本提供共享能力，由页面或组件选择自己的元素并调用。
 

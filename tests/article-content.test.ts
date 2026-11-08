@@ -154,7 +154,7 @@ describe('article directories and configured categories', () => {
     expect(html).toContain(`property="og:image" content="${new URL(cover!, config.site.url)}"`);
     expect(html).toContain('property="og:image:alt" content="Local fixture cover"');
     expect(html).toContain('property="og:type" content="article"');
-    expect(html).toContain('rel="canonical" href="https://cxcs.dev/articles/notes/local-images/"');
+    expect(html).toContain(`rel="canonical" href="${config.site.url}/articles/notes/local-images/"`);
     expect(hero).toContain('page-hero-with-cover');
     expect(hero).toContain('<h1');
     expect(html).toContain('Local fixture caption');
@@ -261,9 +261,9 @@ describe('article directories and configured categories', () => {
       expect(links).toContain(`/articles/blog/${article}`);
       expect(links).not.toContain(`/articles/${article}`);
     }
-    expect(readOutput('rss.xml')).toContain('https://cxcs.dev/articles/notes/local-images/');
-    expect(readOutput('sitemap.xml')).toContain('https://cxcs.dev/articles/notes/local-images');
-    expect(readOutput('sitemap.xml')).toContain('<loc>https://cxcs.dev/articles/empty</loc>');
+    expect(readOutput('rss.xml')).toContain(`${config.site.url}/articles/notes/local-images/`);
+    expect(readOutput('sitemap.xml')).toContain(`${config.site.url}/articles/notes/local-images`);
+    expect(readOutput('sitemap.xml')).toContain(`<loc>${config.site.url}/articles/empty</loc>`);
   });
 
   test('excludes drafts from all public outputs', () => {
