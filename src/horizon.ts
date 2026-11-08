@@ -18,6 +18,9 @@ export const issues: HorizonIssue[] = [
         '/assets/horizon/hero-2026-01-960.webp 960w, /assets/horizon/hero-2026-01-1600.webp 1600w, /assets/horizon/hero-2026-01.webp 2560w',
       alt: '夕阳下，四位计协娘站在校园与玻璃机房前的台阶上',
     },
-    pdf: { href: '/magazines/horizon-2026-01.pdf', sizeLabel: '24 MB' },
+    pdf: {
+      href: 'https://pan.mcf.ink/d/sharepoint-yuanzui/MyFile/Public/Magazines/CXCSHorizon/%E8%AE%A1%E5%BE%80%E5%BC%80%E6%9D%A5%202026%20%E7%AC%AC%E4%B8%80%E6%9C%9F.pdf?sign=SQ-kmdRetDCWks8uWpYZLZxEEGuMtof0O2eDQzfX1ZA=:0',
+      sizeLabel: '50 MB',
+    },
   },
 ];

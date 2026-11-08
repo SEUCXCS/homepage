@@ -46,17 +46,24 @@ describe('计往开来独立栏目', () => {
     expect(html.match(/class="issue-card"/g)).toHaveLength(1);
   });
 
-  test('阅读、整卡与下载均指向实际 PDF，卡片不含嵌套链接', () => {
+  test('阅读、整卡与下载均指向外部 PDF，站点不托管原件', () => {
     const pdf = issues[0].pdf.href;
-    expect(existsSync(join(projectRoot, 'dist', pdf))).toBe(true);
+    expect(pdf.startsWith('https://pan.mcf.ink/')).toBe(true);
+    expect(pdf).toContain('/CXCSHorizon/');
+    expect(pdf).toMatch(/\.pdf\?sign=/);
     const card = html.match(/<a class="issue-card"[^>]*>[\s\S]*?<\/a>/)?.[0] ?? '';
     expect(card.match(/<a\b/g)).toHaveLength(1);
     expect(card).toContain(`href="${pdf}" target="_blank" rel="noopener noreferrer"`);
     expect(card).toContain('loading="lazy"');
-    expect(html).toMatch(new RegExp(`class="hero-button hero-download" href="${pdf}" download`));
+    const download = html.match(/<a\b[^>]*class="hero-button hero-download"[^>]*>/)?.[0] ?? '';
+    expect(download).toContain(`href="${pdf}"`);
+    expect(download).toContain('target="_blank"');
+    expect(download).toContain('rel="noopener noreferrer"');
+    expect(download).not.toMatch(/\sdownload\b/);
     expect(html).toContain(`下载 PDF · ${issues[0].pdf.sizeLabel}`);
-    const sizeMB = Math.round(statSync(join(projectRoot, 'public', pdf)).size / 1_000_000);
-    expect(issues[0].pdf.sizeLabel).toBe(`${sizeMB} MB`);
+    expect(issues[0].pdf.sizeLabel).toMatch(/^\d+ MB$/);
+    expect(existsSync(join(projectRoot, 'public/magazines'))).toBe(false);
+    expect(existsSync(join(projectRoot, 'dist/magazines'))).toBe(false);
   });
 
   test('全站导航、移动菜单、页脚与 sitemap 发现栏目，RSS 保持文章订阅', () => {
@@ -68,7 +75,7 @@ describe('计往开来独立栏目', () => {
     const sitemap = readFileSync(join(projectRoot, 'dist/sitemap.xml'), 'utf8');
     expect(sitemap).toContain(`<loc>${config.site.url}/horizon</loc>`);
     const rss = readFileSync(join(projectRoot, 'dist/rss.xml'), 'utf8');
-    expect(rss).not.toContain('/magazines/');
+    expect(rss).not.toContain('pan.mcf.ink');
   });
 
   test('素材尺寸与体积符合首屏和封面预算', async () => {
@@ -114,7 +121,7 @@ describe('计往开来独立栏目', () => {
       expect(empty.match(/<h1\b/g)).toHaveLength(1);
       expect(empty).not.toContain('class="issue-card"');
       expect(empty).not.toContain('class="hero-bg"');
-      expect(empty).not.toContain('/magazines/horizon-2026-01.pdf');
+      expect(empty).not.toContain('pan.mcf.ink');
     }
   }, 60_000);
 });

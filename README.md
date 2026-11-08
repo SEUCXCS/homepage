@@ -56,9 +56,11 @@ bun run preview
 
 `/horizon` 使用 [src/horizon.ts](./src/horizon.ts) 的独立期刊数据，不接入文章集合或 RSS。添加新一期时，准备 PDF、首屏裁切图与完整封面，并在 `issues` 中添加记录；页面按发布日期倒序排列，最新一期用于首屏，`draft: true` 的期刊不显示。没有公开期刊时显示「第一期正在制作中。」。
 
-PDF 放在 `public/magazines/`，使用无空格的 ASCII 文件名。用 `sips -s format png --resampleWidth 3200 "源文件.pdf" --out /tmp/horizon-page1.png` 渲染首页，再运行 `bun scripts/horizon-assets.mts /tmp/horizon-page1.png 2026-01` 生成三档响应式 WebP 和 3:4 卡片封面。脚本默认在 3200×4313 首页上裁取 `left=0, top=2400, width=3200, height=1800`；换封面后需核对裁切坐标，避免首屏残留原生标题。PDF 保留完整原件，`pdf.sizeLabel` 以实际文件大小四舍五入至十进制 MB。
+PDF 不再由站点托管：把期刊上传到网盘后，将下载链接填入 `pdf.href`，`pdf.sizeLabel` 按远端文件大小填写（当前为 50 MB）。首屏的阅读/下载入口、期刊卡整卡都直接指向该外链，构建产物不包含 PDF，避免占用站点流量。
 
-标题字体为自托管的 Noto Serif SC 900（仅「计往开来」四字）与 Playfair Display 400 子集，来源为 Google Fonts，OFL 许可证随字体保存在 `public/assets/fonts/`。
+封面素材仍从 PDF 首页生成：用 `sips -s format png --resampleWidth 3200 "源文件.pdf" --out /tmp/horizon-page1.png` 渲染首页，再运行 `bun scripts/horizon-assets.mts /tmp/horizon-page1.png 2026-01` 生成三档响应式 WebP 和 3:4 卡片封面。脚本默认在 3200×4313 首页上裁取 `left=0, top=2400, width=3200, height=1800`；换封面后需核对裁切坐标，避免首屏残留原生标题。
+
+标题字体为自托管的 Noto Serif SC 900（仅「计往开来」四字）与 Instrument Serif 400（仅「CXCS Horizon」）子集，来源为 Google Fonts，OFL 许可证随字体保存在 `public/assets/fonts/`。
 
 ### 新增文章
 
@@ -199,7 +201,7 @@ $$
 | `src/content.config.ts`、`src/content/articles/`                          | 内容加载器、schema 与文章源文件                    |
 | `src/articles.ts`、`src/status.ts`                                        | 分类与封面辅助函数、时间状态计算                   |
 | `src/horizon.ts`、`src/types/horizon.ts`、`src/widgets/HorizonHero.astro` | 独立期刊数据、类型与满屏首屏                       |
-| `scripts/horizon-assets.mts`、`public/magazines/`                         | 可复用期刊图片裁切脚本与完整 PDF                   |
+| `scripts/horizon-assets.mts`、`public/assets/horizon/`                    | 可复用期刊图片裁切脚本与网页素材                   |
 | `public/assets/`                                                          | 社徽、字标、角色、生态截图和自托管 Geist 字体      |
 | `tests/`                                                                  | 内容构建、封面、页面结构、初始化生命周期和状态测试 |
 | `docs/design.md`                                                          | 当前设计与实现说明                                 |

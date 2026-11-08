@@ -89,11 +89,11 @@ Latest 的数据规则与文章总列表一致：过滤草稿，按 `publishedAt
 
 `/horizon` 是与文章体系独立的杂志栏目，由 `src/horizon.ts` 与 `src/types/horizon.ts` 定义期刊，`HorizonHero.astro` 展示最新公开期刊。按发布日期倒序过滤草稿，不复用文章集合、不创建详情路由、不进入 RSS；空数据仍输出页面和制作中提示。
 
-首屏使用 100vh（支持时以 100svh 兼容 iOS 地址栏），封面下半部 16:9 裁切作为装饰图，叠加集中定义的深蓝遮罩。居中的中文宋体主标题与 0.44 倍英文衬线副标同排、顶部对齐，期号、标签、说明与阅读/下载按钮共同垂直居中。手机端缩小标题锁排并纵向排列按钮。字体为自托管 OFL 子集，标题行预留最小高度；首屏图片提供 960/1600/2560 三档并高优先级加载。
+首屏使用 100vh（支持时以 100svh 兼容 iOS 地址栏），封面下半部 16:9 裁切作为装饰图，叠加集中定义的深蓝遮罩。标题锁排按期刊封面复刻：中文宋体 900 与高挑窄衬线英文同排，英文大写顶线对齐中文，字号约为中文的 0.64 倍；期号行左对齐挂在英文下方，末端的「创刊号」白底标签紧随其后，说明与阅读/下载按钮整体垂直居中。手机端按视口收窄锁排字号并纵向排列按钮。字体为自托管 OFL 子集，首屏图片提供 960/1600/2560 三档并高优先级加载。
 
 `body[data-page='horizon']` 由布局预置并在 `onPageLoad` 中同步、离页时清理。顶栏沿用现有滚动/尺寸监听，比较首屏底边与顶栏底边设置 `data-over-hero`，由 `--header-fg`、`--header-muted` 驱动反白；深色区域内滚动不出现浅色玻璃条。所有新增监听均在重新初始化和 `astro:before-swap` 清理。
 
-期刊网格沿用文章卡片的 Surface、细边框、小圆角和 Hover 语言，封面保持 3:4，桌面三列、980px 以下两列、640px 以下一列。只有一期时使用左对齐、最大 400px 的单卡，不生成占位数据。整卡在新标签打开 PDF，独立次按钮下载原件，焦点反馈明确；颜色随现有主题 Token 切换，封面不加滤镜。素材由 `scripts/horizon-assets.mts` 从首页渲染图生成，PDF 原件存放于 `public/magazines/`。
+期刊网格沿用文章卡片的 Surface、细边框、小圆角和 Hover 语言，封面保持 3:4，桌面三列、980px 以下两列、640px 以下一列。只有一期时使用左对齐、最大 400px 的单卡，不生成占位数据。整卡在新标签打开 PDF，独立次按钮下载原件，焦点反馈明确；PDF 由网盘外链提供，`public/` 与构建产物中都不保留原件。颜色随现有主题 Token 切换，封面不加滤镜。素材由 `scripts/horizon-assets.mts` 从首页渲染图生成。
 
 ### 文章列表与分类
 
@@ -209,7 +209,7 @@ src/content/articles/<source-category>/<article-name>/index.md 或 index.mdx
 | --- | --- |
 | `src/pages/horizon.astro`、`src/widgets/HorizonHero.astro` | 独立期刊页面与首屏展示 |
 | `src/horizon.ts`、`src/types/horizon.ts` | 期刊数据与可扩展类型 |
-| `scripts/horizon-assets.mts`、`public/assets/horizon/`、`public/magazines/` | 图片生成、网页素材与完整 PDF |
+| `scripts/horizon-assets.mts`、`public/assets/horizon/` | 期刊图片生成与网页素材 |
 
 页面、layout、widget 和 component 的专属样式、脚本、动画及媒体查询都放在所属 `.astro` 文件中。`src/assets/styles/` 只维护 Token、字体、基础规则和跨页面工具类，`src/assets/scripts/` 提供 `onPageLoad()` 与 `reveal()` 等共享能力。TypeScript 开启 Astro strict 配置，并支持 `@/*` 指向 `src/*`。
 

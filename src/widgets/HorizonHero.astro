@@ -28,23 +28,25 @@ const titleLabel = ['计往开来 · CXCS Horizon', issue?.period, issue?.badge]
     <div class="hero-lockup">
       <h1 id="horizon-title" aria-label={titleLabel}>
         <span class="title-cjk">计往开来</span>
-        <span class="title-en" lang="en">
-          CXCS Horizon
+        <span class="title-side">
+          <span class="title-en" lang="en">
+            CXCS Horizon
+          </span>
+          {issue && (
+            <span class="hero-period">
+              <span class="hero-period-text">{issue.period}</span>
+              {issue.badge && <span class="hero-badge">{issue.badge}</span>}
+            </span>
+          )}
         </span>
       </h1>
-      {issue && (
-        <p class="hero-period">
-          <span>{issue.period}</span>
-          {issue.badge && <span class="hero-badge">{issue.badge}</span>}
-        </p>
-      )}
       <p class="hero-copy">在代码与想象之间，记录我们正在抵达的地平线。</p>
       {issue && (
         <div class="hero-actions">
           <a class="hero-button hero-read" href={issue.pdf.href} target="_blank" rel="noopener noreferrer">
             阅读本期 <span aria-hidden="true">↗</span>
           </a>
-          <a class="hero-button hero-download" href={issue.pdf.href} download>
+          <a class="hero-button hero-download" href={issue.pdf.href} target="_blank" rel="noopener noreferrer">
             下载 PDF · {issue.pdf.sizeLabel}
           </a>
         </div>
@@ -118,58 +120,73 @@ const titleLabel = ['计往开来 · CXCS Horizon', issue?.period, issue?.badge]
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 96px clamp(20px, 4.5vw, 48px);
+    padding: 96px 0;
     text-align: center;
   }
   .hero-lockup {
     width: 100%;
   }
   h1 {
-    display: flex;
+    --title-size: clamp(48px, 9.2vw, 168px);
+    display: inline-flex;
     align-items: flex-start;
     justify-content: center;
-    gap: 0.3em;
-    min-height: 1.1em;
+    gap: 0.312em;
     margin: 0;
-    font-size: clamp(52px, 7.4vw, 128px);
+    font-size: var(--title-size);
     line-height: 1;
+    text-align: left;
     color: var(--hero-white);
   }
   .title-cjk {
+    display: block;
     font-family: var(--font-horizon-cjk);
     font-weight: 900;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.012em;
+    line-height: 1;
     white-space: nowrap;
   }
+  .title-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    height: 0.967em;
+  }
   .title-en {
-    padding-top: 0.04em;
+    display: block;
     font-family: var(--font-horizon-en);
-    font-size: 0.44em;
+    font-size: 0.64em;
     font-weight: 400;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.016em;
+    line-height: 1;
     white-space: nowrap;
-    transform: translateY(-0.06em);
+    transform: translateY(-0.12em);
   }
   .hero-period {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 0.32em 0 0;
-    color: color-mix(in srgb, var(--hero-white) 82%, transparent);
-    font-size: 15px;
+    gap: 0.55em;
+    color: color-mix(in srgb, var(--hero-white) 86%, transparent);
+    font-family: var(--font-ui);
+    font-size: 0.25em;
+    font-weight: 350;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
   }
   .hero-badge {
-    padding: 3px 10px;
+    padding: 0.31em 0.3em;
     border-radius: 2px;
     background: var(--hero-button-bg);
     color: var(--hero-button-ink);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    line-height: 1.4;
+    font-size: 0.66em;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    line-height: 1;
   }
   .hero-copy {
-    margin: 28px 0 0;
+    margin: 30px 0 0;
     color: color-mix(in srgb, var(--hero-white) 68%, transparent);
     font-size: 15px;
     line-height: 1.8;
@@ -226,9 +243,9 @@ const titleLabel = ['计往开来 · CXCS Horizon', issue?.period, issue?.badge]
   }
   @media (max-width: 520px) {
     h1 {
-      /* 窄屏缩小锁排，仍保持中英文同排，避免裁切标题。 */
-      font-size: clamp(32px, 10vw, 52px);
-      gap: 0.25em;
+      /* 窄屏保持封面式锁排，按视口收窄字号，避免裁切标题。 */
+      font-size: clamp(34px, 12vw, 52px);
+      gap: 0.29em;
     }
     .hero-copy {
       max-width: 320px;

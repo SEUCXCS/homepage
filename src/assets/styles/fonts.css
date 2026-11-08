@@ -14,9 +14,10 @@
 }
 
 @font-face {
-  font-family: 'Horizon Playfair Display';
-  src: url('/assets/fonts/horizon-playfair-display-400.woff2') format('woff2');
+  font-family: 'Horizon Instrument Serif';
+  src: url('/assets/fonts/horizon-instrument-serif-400.woff2') format('woff2');
   font-weight: 400;
+  font-style: normal;
   font-display: swap;
   unicode-range: U+20, U+43, U+48, U+53, U+58, U+69, U+6E-6F, U+72, U+7A;
 }
@@ -25,5 +26,5 @@
   --font-ui: 'Geist', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-cjk: 'Geist', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   --font-horizon-cjk: 'Horizon Noto Serif SC', 'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
-  --font-horizon-en: 'Horizon Playfair Display', 'Didot', 'Bodoni MT', 'Playfair Display', 'Times New Roman', serif;
+  --font-horizon-en: 'Horizon Instrument Serif', 'Didot', 'Bodoni MT', 'Playfair Display', 'Times New Roman', serif;
 }
